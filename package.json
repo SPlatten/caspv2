@@ -1,0 +1,23 @@
+{
+    "author": "Simon Platten",
+    "name": "caspv2",
+    "version": "2.0.0",
+    "description": "CASP version 2",
+    "main": "index.js",
+    "private": true,
+    "gypfile": true,
+    "scripts": {
+        "build": "node-gyp rebuild",
+        "clean": "node-gyp clean"
+    },
+    "license": "ISC",
+    "devDependencies": {
+        "node-gyp": "^7.1.2"
+    },
+    "dependencies": {
+        "binding": "^3.0.3",
+        "bindings": "^1.5.0",
+        "libxmljs": "^0.19.7",
+        "node-addon-api": "^3.1.0"
+    }
+}
