@@ -2,8 +2,8 @@
     "author": "Simon Platten",
     "name": "caspv2",
     "version": "2.0.0",
-    "description": "CASP version 2",
-    "main": "index.js",
+    "description": "BeagleBone / A-Safe / Cloud Demonstration",
+    "main": "bb.js",
     "private": true,
     "gypfile": true,
     "scripts": {
