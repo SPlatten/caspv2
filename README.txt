@@ -2,7 +2,9 @@
 				Infinite Blu, NodeJS emulation/simulation
 			Written by: Simon Platten
 			mailto: simonp@syberdynesystems.com
-********************************************************************************Files:
+********************************************************************************
+
+Files:
 	bb.js		Emulates functionality of BeagleBone NodeJS Server
 	a-safe.js	Emulates functionality of A-Safe C Application
 	cloudsvr.js	Emulates functionality of Cloude NodeJS Server
