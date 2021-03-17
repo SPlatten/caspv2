@@ -1,5 +1,5 @@
 /**
- * File:    index.js
+ * File:    bb.js
  * Notes:   Representation of BeagleBone Node Gateway
  * 
  * To test https connection, open terminal and use:
@@ -10,95 +10,119 @@
  */
 'use strict'
 //Include modules
-const { clsCASPv2 }     = require("bindings")("caspv2")
-const cmn               = require("./incs/common")
-const { EventEmitter }  = require("events")
-const fs                = require("fs")
-const https             = require("https")
-const { inherits }      = require("util")
-const path              = require("path")
-const { pipeline }      = require("stream")
-inherits(clsCASPv2, EventEmitter)
-const caspv2 = new clsCASPv2(1)
-
-let blnVerbose = true, lngBeagleBone = 0, lngReceived = 0
-   ,objReceived, strCWD = path.dirname(__filename)
-   ,svr = https.createServer({key:fs.readFileSync("key.pem")
-                            ,cert:fs.readFileSync("cert.pem")}, (req, res) => {
-    if ( req.method != "POST" ) {
-//Shouldn't get here!        
-        console.log(cmn.defs.RED + req.method + cmn.defs.RESET)
-        return
-    }
-    const aryChunks = []                           
-    req.on("data", (chunk) => aryChunks.push(chunk))
-       .on("end", () => {        
-        let strData = cmn.strCombineChunks(aryChunks)
-        
-        if ( typeof strData == "string" && strData.length > 0 ) {
-//Convert the body to JSON   
-            lngReceived = strData.length
-            objReceived =  JSON.parse(strData)
-        
-            if ( typeof objReceived == "object" ) {    
-//Add information at this stage     
-                objReceived.beagleBone = {"reqNo": (++lngBeagleBone)
-                                          ,"time": (new Date()).getTime()}            
-//Forward received data to A-Safe application via pipe
-                let aryMsg = cmn.aryPackageJSON(objReceived)
-//Create PIPE                
-                const pipeWrite = fs.createWriteStream(cmn.defs.PIPE_BB_TO_ASAFE)                
-//Write message to it                
-                pipeWrite.write(aryMsg)
-            }
-        }
-    })
-    req.on("error", (err) => console.error(cmn.defs.RED + err.message + cmn.defs.RESET))       
-//Send response code back
-    res.writeHead(200)
-    res.end()        
-});
+const cmn           = require("./incs/common")
+const exec          = require("child_process").exec
+const path          = require("path")
+let blnNextRequest = true, blnVerbose = true, objStats
+   ,strCWD = path.dirname(__filename), tmLastModified
+   ,tmPrevModified
+//Start HTTPS server
+cmn.httpServer(cmn.defs.PORT_BEAGLEBONE_LSTNG)      
 //Display the application start-up message
-cmn.titleBlock(caspv2.title(), "2.00")
+cmn.titleBlock("BeagleBone", "1.00")
 //Report profile folder
-cmn.displayDataWithPrompt(5, 24, process.env.HOME, "Profile: ")
-cmn.displayDataWithPrompt(6, 19, strCWD, "Current path: ")
-
-if ( typeof svr == "object" ) {
-    svr.listen(cmn.defs.PORT_BEAGLEBONE_LSTNG)
-    svr.on("error", (err) => console.error(cmn.defs.RED + err.message + cmn.defs.RESET))  
-}
-//Timer to check if PIPE has been modified
-let tmLastModified, tmPrevModified
+cmn.displayDataWithPrompt(5, 6, process.env.HOME, "Profile: ")
+cmn.displayDataWithPrompt(6, 1, strCWD, "Current path: ")
+//Timer to post to cloud
 setInterval(() => {
-    if ( fs.existsSync(cmn.defs.PIPE_ASAFE_TO_BB) != true ) {
-        return
-    }
-    const stats = fs.statSync(cmn.defs.PIPE_ASAFE_TO_BB)
-    tmLastModified = stats.mtime.toISOString()
-    if ( tmPrevModified == tmLastModified ) {
-    //No change in file ignore            
+    if ( blnNextRequest != true || typeof objStats != "object" ) {
+    //Not ready for next request yet!
         return;
     }
-    //File modified            
-    tmPrevModified = tmLastModified            
-    const pipeRead = fs.createReadStream(cmn.defs.PIPE_ASAFE_TO_BB)
-    let aryMsg = []
-    pipeRead.on("data", (chunk) => aryMsg.push(chunk))
-            .on("end", () => {
-        if ( !(typeof aryMsg == "object" && aryMsg.length == 1) ) {
-            return
-        }        
-        if ( blnVerbose == true ) {
-            let intIdx = 0                
-               ,intLength = aryMsg[intIdx++]
-                         | (aryMsg[intIdx++] << 0x08)
-                         | (aryMsg[intIdx++] << 0x10)
-                         | (aryMsg[intIdx++] << 0x18)
-            let aryData = aryMsg[0].slice(intIdx)         
-               ,objReceived = JSON.parse(aryData)
-//Display information about processed JSON
-            cmn.displayStats(7, 42, objReceived)
+    //Prevent timer from getting any further until this flag has been set to true
+    blnNextRequest = false;
+    let options = {"ca": cmn.fs.readFileSync("cert.pem")
+ ,"checkServerIdentity": (host, cert) => {return undefined}
+             ,"headers": {"Content-Type": "application/octet-stream"
+                       ,"Content-Length": 0}
+            ,"hostname": cmn.defs.HOST_BEAGLEBONE
+              ,"method": "POST"
+                ,"path": "/"
+                ,"port": cmn.defs.PORT_BEAGLEBONE_LSTNG}
+    //Update agent
+    options.agent = new cmn.https.Agent(options)
+    var req = cmn.https.request(options, (res) => {
+        res.on("data", (d) => {
+            process.stdout.write(cmn.strMoveCursor(7, 1) + cmn.defs.BLUE + d + cmn.defs.RESET)
+            blnNextRequest = true
+        })
+    })
+    req.on("error", (err) => 
+        console.error(cmn.defs.RED + err.message + cmn.defs.RESET));    
+    //Create data to send        
+    let txBuffer = Buffer.from(JSON.stringify(objStats))
+    //Transmit buffer
+    req.setHeader("Content-Length", txBuffer.length)    
+
+    if ( req.write(txBuffer) == true && blnVerbose == true ) {        
+    //Update statistics
+        cmn.incCount(objStats, cmn.defs.JSON_BEAGLEBONE, cmn.defs.JSON_HTTP_POSTS_SENT)
+    //Display information about processed JSON
+        cmn.displayStats(7, 1, objStats)            
+    }
+    req.end()
+}, cmn.defs.REQUEST_FREQUENCY);
+//Timer to service PIPES
+setInterval(() => {
+    if ( typeof objStats == "object" && typeof objStats.beagleBone == "object"
+      && cmn.fs.existsSync(cmn.defs.PIPE_ASAFE_TO_BB) == true ) {
+        const stats = cmn.fs.statSync(cmn.defs.PIPE_ASAFE_TO_BB)
+        tmLastModified = stats.mtime.toISOString()
+        
+        if ( tmPrevModified != tmLastModified ) {
+    //File has been modified, update modified timestamp
+           tmPrevModified = tmLastModified             
+    //Read file content
+            const pipeRead = cmn.fs.createReadStream(cmn.defs.PIPE_ASAFE_TO_BB)
+            let aryMsg = []
+            pipeRead.on("data", (chunk) => aryMsg.push(chunk))
+                    .on("end", () => {
+                if ( !(typeof aryMsg == "object" && aryMsg.length == 1) ) {
+                    return
+                }        
+                if ( blnVerbose == true ) {
+                    let aryData = aryMsg[0].slice(cmn.defs.BYTES_IN_LENGTH)
+                       ,objReceived = JSON.parse(aryData)
+                    cmn.incCount(objStats, cmn.defs.JSON_BEAGLEBONE, cmn.defs.JSON_PIPES_READ)
+                    for( let x in objReceived ) {
+                        if ( x == "ASAFE" ) {
+    //Transfer only the ASAFE data
+                            objStats[x] = objReceived[x];
+                            break;                          
+                        }
+                    }
+                }
+                pipeRead.close()
+            });
         }
-    });
-}, cmn.defs.CHECK_PIPE_FREQUENCY)
+    }
+    //Update the PIPE for data to ASAFE
+    const pipeWrite = cmn.fs.createWriteStream(cmn.defs.PIPE_BB_TO_ASAFE)                
+    //Ensure stats is initialised
+    if ( objStats == undefined ) {
+        objStats = {}
+    }
+    //Update statistics
+    cmn.incCount(objStats, cmn.defs.JSON_BEAGLEBONE, cmn.defs.JSON_PIPES_SENT)
+    //Forward message data to A-Safe application via pipe
+    let aryMsg = cmn.aryPackageJSON(objStats)
+    //Write message to pipe
+    pipeWrite.write(aryMsg)
+    //Close the pipe
+    pipeWrite.close()
+    if ( blnVerbose == true ) {   
+    //Display information about processed JSON
+        cmn.displayStats(7, 1, objStats)
+
+        // cmn.displayDataWithPrompt(15, 1, "JSON:")        
+        // console.dir(objStats)
+    }
+}, cmn.defs.PIPE_SERVICE_INTERVAL)
+//Launch node instance for Cloud Node.JS Server 
+// exec('node cloudsvr.js', (error, stdout, stderr) => {
+//     console.log(stdout);
+// });
+// //Launch node instance for A-Safe Application (simulating C-App)
+// exec('node a-safe.js', (error, stdout, stderr) => {
+//     console.log(stdout);
+// });

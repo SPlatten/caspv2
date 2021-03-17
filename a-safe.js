@@ -7,18 +7,16 @@
  */
  'use strict'
  //Include modules
-const cmn               = require("./incs/common")
-const fs                = require("fs")
-const { pipeline }      = require("stream")
+const cmn           = require("./incs/common")
 //Display the application start-up message
 cmn.titleBlock("A-Safe-Application demo", "1.00")
 //Timer to check if PIPE has been modified
-let blnVerbose = true, lngCApp = 0, tmLastModified, tmPrevModified
+let blnVerbose = true, objStats, tmLastModified, tmPrevModified
 setInterval(() => {
-    if ( fs.existsSync(cmn.defs.PIPE_BB_TO_ASAFE) != true ) {
+    if ( cmn.fs.existsSync(cmn.defs.PIPE_BB_TO_ASAFE) != true ) {
         return
     }
-    const stats = fs.statSync(cmn.defs.PIPE_BB_TO_ASAFE)
+    const stats = cmn.fs.statSync(cmn.defs.PIPE_BB_TO_ASAFE)
     tmLastModified = stats.mtime.toISOString()
     if ( tmPrevModified == tmLastModified ) {
     //No change in file ignore            
@@ -26,7 +24,7 @@ setInterval(() => {
     }
     //File modified            
     tmPrevModified = tmLastModified            
-    const pipeRead = fs.createReadStream(cmn.defs.PIPE_BB_TO_ASAFE)
+    const pipeRead = cmn.fs.createReadStream(cmn.defs.PIPE_BB_TO_ASAFE)
     let aryChunks = []
     pipeRead.on("data", (chunk) => aryChunks.push(chunk))
             .on("end", () => {
@@ -35,27 +33,31 @@ setInterval(() => {
         if ( !(typeof strData == "string" && strData.length > 0) ) {
             return
         }        
-        let aryMsg = Buffer.from(strData), intIdx = 0                
-            ,intLength = aryMsg[intIdx++]
-                        | (aryMsg[intIdx++] << 0x08)
-                        | (aryMsg[intIdx++] << 0x10)
-                        | (aryMsg[intIdx++] << 0x18)
-        let aryData = aryMsg.subarray(intIdx, aryMsg.length)  
+        let aryData = strData.slice(cmn.defs.BYTES_IN_LENGTH)
            ,objReceived = JSON.parse(aryData)
         if ( typeof objReceived == "object" ) {
-//Add information at this stage     
-            objReceived.capp = {"reqNo": (++lngCApp)
-                                ,"time": (new Date()).getTime()}                                         
-            if ( blnVerbose == true ) {                               
-//Display information about processed JSON
-                cmn.displayStats(5, 42, objReceived)
+    //Ensure stats is initialised
+            if ( objStats == undefined ) {
+                objStats = {}
             }
-//Prepare JSON for transmission
-            let aryResponse = cmn.aryPackageJSON(objReceived)
-//Create PIPE                
-            const pipeWrite = fs.createWriteStream(cmn.defs.PIPE_ASAFE_TO_BB)                
-//Write message to it                
+    //Transfer contents of objRecevied to statistics            
+            for( let x in objReceived ) {
+                objStats[x] = objReceived[x]
+            }
+    //Update statistics            
+            cmn.incCount(objStats, cmn.defs.JSON_ASAFE, cmn.defs.JSON_PIPES_SENT)
+            if ( blnVerbose == true ) {                               
+    //Display information about processed JSON
+                cmn.displayStats(5, 1, objStats)
+            }
+    //Prepare JSON for transmission
+            let aryResponse = cmn.aryPackageJSON(objStats)
+    //Create PIPE                
+            const pipeWrite = cmn.fs.createWriteStream(cmn.defs.PIPE_ASAFE_TO_BB)                
+    //Write message to it                
             pipeWrite.write(aryResponse)
+    //Close the pipe
+            pipeWrite.close()
         }
     });
 }, cmn.defs.CHECK_PIPE_FREQUENCY)
