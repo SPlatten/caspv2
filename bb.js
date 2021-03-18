@@ -22,6 +22,9 @@ let blnNextHTTPpost = true, objStats = {}, options
 //Register this node
 objStats[cmn.defs.JSON_BEAGLEBONE] = {}
 cmn.registration(objStats, cmn.defs.JSON_BEAGLEBONE, 7, 1)
+//Remove any existing pipe files
+cmn.fs.unlinkSync(cmn.defs.PIPE_ASAFE_TO_BB)
+cmn.fs.unlinkSync(cmn.defs.PIPE_BB_TO_ASAFE)
 //Report profile folder
 cmn.displayDataWithPrompt(5, 6, process.env.HOME, "Profile: ")
 cmn.displayDataWithPrompt(6, 1, strCWD, "Current path: ")

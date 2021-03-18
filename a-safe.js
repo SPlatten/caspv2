@@ -7,14 +7,14 @@
  */
  'use strict'
  //Include modules
-const cmn           = require("./incs/common")
+const cmn = require("./incs/common")
 //Display the application start-up message
 cmn.titleBlock("A-Safe-Application demo", "1.00")
 //Timer to check if PIPE has been modified
 let objStats = {}, tmLastModified, tmPrevModified
 //Register this node
 objStats[cmn.defs.JSON_ASAFE] = {}
-cmn.registration(objStats, cmn.defs.JSON_ASAFE, 7, 1)
+cmn.registration(objStats, cmn.defs.JSON_ASAFE, 5, 1)
 //Timer to read pipe from BeagleBone and Create Pipe
 setInterval(() => {
     if ( cmn.fs.existsSync(cmn.defs.PIPE_BB_TO_ASAFE) != true ) {
@@ -39,10 +39,6 @@ setInterval(() => {
         let aryData = strData.slice(cmn.defs.BYTES_IN_LENGTH)
            ,objReceived = JSON.parse(aryData)
         if ( typeof objReceived == "object" ) {
-    //Transfer contents of objRecevied to statistics            
-            for( let x in objReceived ) {
-                objStats[x] = objReceived[x]
-            }
     //Update statistics            
             cmn.incCount(objStats, cmn.defs.JSON_ASAFE, cmn.defs.JSON_PIPE_READ)
     //Prepare JSON for transmission
