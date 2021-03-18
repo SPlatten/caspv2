@@ -33,6 +33,8 @@ const ANSI_PREFIX           = "\u001b["
      ,JSON_PIPE_CREATED     = "     Pipe Created"
      ,JSON_PIPE_READ        = "        Pipe Read"
      ,JSON_TIME             = "Time"
+     ,METHOD_GET            = "GET"
+     ,METHOD_POST           = "POST"
      ,PIPE_ASAFE_TO_BB      = "./asafe-bb.file"
      ,PIPE_BB_TO_ASAFE      = "./bb-asafe.file"
      ,PIPE_SERVICE_INTERVAL = 1
@@ -78,6 +80,8 @@ try{
     exports.JSON_PIPE_CREATED     = JSON_PIPE_CREATED
     exports.JSON_PIPE_READ        = JSON_PIPE_READ
     exports.JSON_TIME             = JSON_TIME
+    exports.METHOD_GET            = METHOD_GET
+    exports.METHOD_POST           = METHOD_POST
     exports.PIPE_ASAFE_TO_BB      = PIPE_ASAFE_TO_BB
     exports.PIPE_BB_TO_ASAFE      = PIPE_BB_TO_ASAFE
     exports.PIPE_SERVICE_INTERVAL = PIPE_SERVICE_INTERVAL

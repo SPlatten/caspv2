@@ -95,23 +95,23 @@ const clearError = () => {
  * @param fnCallback Callback to perform on connection
  */
 const connectTo = (strServer, intPort, fnCallback) => {
-    let options = {"ca": fs.readFileSync("cert.pem")
-,"checkServerIdentity": (host, cert) => {return undefined}
-            ,"headers": {"Content-Type": "application/octet-stream"
-                      ,"Content-Length": 0}
-           ,"hostname": strServer
-             ,"method": "POST"
-               ,"path": "/"
-               ,"port": intPort}               
-    options.agent = new https.Agent(options)
+    let options =  {"ca": fs.readFileSync("cert.pem")
+  ,"checkServerIdentity": (host, cert) => {return undefined}
+              ,"headers": {"Content-Type": "application/octet-stream"
+                        ,"Content-Length": 0}
+             ,"hostname": strServer
+               ,"method": defs.METHOD_POST
+                 ,"path": "/"
+                 ,"port": intPort}
+    options.agent = new https.Agent(options)    
     let svr = https.request(options, (res) => {
-    //For binary data we don't want any encoding                                   
+    //For binary data we don't want any encoding                                       
         res.setEncoding(null)
         res.on("data", (chunk) => {
             console.log(chunk)
         })
     }).on("error", (error) => {
-        displayError(error)        
+        displayError(error)
         if ( objRegStats != undefined && typeof strRegRootKey == "string" ) {
     //Increment error count        
             incCount(objRegStats, strRegRootKey, defs.JSON_HTTP_SEND_ERROR)
@@ -298,7 +298,7 @@ const setupHTTPSrx = (strRootKey, strSubKey, strHost, intPort) => {
              ,"headers": {"Content-Type": "application/json"
                          ,"Content-Length": 0}
             ,"hostname": strHost
-              ,"method": "POST"
+              ,"method": defs.METHOD_POST
                 ,"path": "/"
                 ,"port": intPort}
     options.agent = new https.Agent(options)
@@ -349,7 +349,7 @@ const setupHTTPSrx = (strRootKey, strSubKey, strHost, intPort) => {
     //Set correct content length
             req.setHeader(defs.HDR_CONTENT_LENGTH, buffer.length)
     //Send data
-            req.end(buffer)            
+            req.end(buffer)
     //Update statistics
             incCount(objRegStats, strRegRootKey, defs.JSON_HTTP_POSTS_SENT)
         }
@@ -365,9 +365,12 @@ const setupHTTPSrx = (strRootKey, strSubKey, strHost, intPort) => {
     //Only when "res" is null do we create a new connection                
                 objHTTPStx["res"] = connectTo(strHost, intPort, (req) => {
                     fnCallback(req)
-                }).on("error", (error) => {
-                    displayError(error)
-                })                
+                })
+                if ( objHTTPStx["res"] != undefined ) {
+                    objHTTPStx["res"].on("error", (error) => {
+                        displayError(error)
+                    })                
+                }
             }
         }, defs.HTTP_SERVICE_INTERVAL);
     }
