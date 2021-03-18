@@ -11,7 +11,11 @@ const cmn           = require("./incs/common")
 //Display the application start-up message
 cmn.titleBlock("A-Safe-Application demo", "1.00")
 //Timer to check if PIPE has been modified
-let blnVerbose = true, objStats, tmLastModified, tmPrevModified
+let objStats = {}, tmLastModified, tmPrevModified
+//Register this node
+objStats[cmn.defs.JSON_ASAFE] = {}
+cmn.registration(objStats, cmn.defs.JSON_ASAFE, 7, 1)
+//Timer to read pipe from BeagleBone and Create Pipe
 setInterval(() => {
     if ( cmn.fs.existsSync(cmn.defs.PIPE_BB_TO_ASAFE) != true ) {
         return
@@ -29,27 +33,18 @@ setInterval(() => {
     pipeRead.on("data", (chunk) => aryChunks.push(chunk))
             .on("end", () => {
         let strData = cmn.strCombineChunks(aryChunks)
-
         if ( !(typeof strData == "string" && strData.length > 0) ) {
             return
         }        
         let aryData = strData.slice(cmn.defs.BYTES_IN_LENGTH)
            ,objReceived = JSON.parse(aryData)
         if ( typeof objReceived == "object" ) {
-    //Ensure stats is initialised
-            if ( objStats == undefined ) {
-                objStats = {}
-            }
     //Transfer contents of objRecevied to statistics            
             for( let x in objReceived ) {
                 objStats[x] = objReceived[x]
             }
     //Update statistics            
-            cmn.incCount(objStats, cmn.defs.JSON_ASAFE, cmn.defs.JSON_PIPES_SENT)
-            if ( blnVerbose == true ) {                               
-    //Display information about processed JSON
-                cmn.displayStats(5, 1, objStats)
-            }
+            cmn.incCount(objStats, cmn.defs.JSON_ASAFE, cmn.defs.JSON_PIPE_READ)
     //Prepare JSON for transmission
             let aryResponse = cmn.aryPackageJSON(objStats)
     //Create PIPE                
@@ -58,6 +53,8 @@ setInterval(() => {
             pipeWrite.write(aryResponse)
     //Close the pipe
             pipeWrite.close()
+    //Update statistics            
+            cmn.incCount(objStats, cmn.defs.JSON_ASAFE, cmn.defs.JSON_PIPE_CREATED)
         }
     });
 }, cmn.defs.CHECK_PIPE_FREQUENCY)
