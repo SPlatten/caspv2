@@ -14,14 +14,14 @@ const cmn           = require("./incs/common")
 const exec          = require("child_process").exec
 const path          = require("path")
 //Display the application start-up message
-cmn.titleBlock("BeagleBone", "1.00")
+let intFirstRow = cmn.titleBlock("BeagleBone", "1.00")
 //Set-up variables
 let blnNextHTTPpost = true, objStats = {}, options
    ,strCWD = path.dirname(__filename)
    ,tmLastModified, tmPrevModified, txBuffer
 //Register this node
 objStats[cmn.defs.JSON_BEAGLEBONE] = {}
-cmn.registration(objStats, cmn.defs.JSON_BEAGLEBONE, 7, 1)
+cmn.registration(objStats, cmn.defs.JSON_BEAGLEBONE, intFirstRow + 2, 1)
 //Remove any existing pipe files
 if ( cmn.fs.existsSync(cmn.defs.PIPE_ASAFE_TO_BB) ) {
     cmn.fs.unlinkSync(cmn.defs.PIPE_ASAFE_TO_BB)
@@ -30,8 +30,8 @@ if ( cmn.fs.existsSync(cmn.defs.PIPE_BB_TO_ASAFE) ) {
     cmn.fs.unlinkSync(cmn.defs.PIPE_BB_TO_ASAFE)
 }
 //Report profile folder
-cmn.displayDataWithPrompt(5, 6, process.env.HOME, "Profile: ")
-cmn.displayDataWithPrompt(6, 1, strCWD, "Current path: ")
+cmn.displayDataWithPrompt(intFirstRow++, 6, process.env.HOME, "Profile: ")
+cmn.displayDataWithPrompt(intFirstRow++, 1, strCWD, "Current path: ")
 //Set-up service to receive HTTPS 'POST'ed data
 cmn.setupHTTPSrx(cmn.defs.JSON_BEAGLEBONE
                 ,cmn.defs.JSON_HTTP_POSTS_READ

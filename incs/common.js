@@ -414,19 +414,25 @@ const strPadding = (intWidth, cPadding) => {
 /**
  * @param strTitle Title to display
  * @param strVerion Version number
+ * @return Next available row after title block
  */
 const titleBlock = (strTitle, strVersion) => {
     let aryLines = [
         strTitle + " for NODE.js, version " + strVersion + ", PID: " 
                                                          + process.pid,
+        "Written by Simon A. Platten of Syberdyne Systems Ltd",
         "Today's date: " + (new Date()).toLocaleDateString("en-GB")
     ], strSeperator = strPadding(defs.DISP_WIDTH, "*")
-    console.log(defs.CLRSCR + defs.GREEN + strSeperator + defs.YELLOW)
+    let intRow = 1
+    displayDataWithPrompt(intRow++, 1
+        ,defs.CLRSCR + defs.GREEN + strSeperator + defs.YELLOW)
     for( let l=0; l<aryLines.length; l++ ) {    
-        console.log(strPadding((defs.DISP_WIDTH - aryLines[l].length) / 2, ' ')
-                  + aryLines[l])
+        displayDataWithPrompt(intRow++, 1
+            ,strPadding((defs.DISP_WIDTH - aryLines[l].length) / 2, ' ')
+            + aryLines[l])
     }
-    console.log(defs.GREEN + strSeperator + defs.RESET)
+    displayDataWithPrompt(intRow++, 1, defs.GREEN + strSeperator + defs.RESET)    
+    return intRow
 }
 try{
     if ( exports !== undefined ) {

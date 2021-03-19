@@ -12,11 +12,11 @@
 const cmn           = require("./incs/common")
 const { CYAN } = require("./incs/defs")
 //Display the application start-up message
-cmn.titleBlock("Cloud NodeJS Server", "1.00")
-let  objStats = {}
+let intFirstRow = cmn.titleBlock("Cloud NodeJS Server", "1.00")
+   ,objStats = {}
 //Register this node
 objStats[cmn.defs.JSON_CLOUD] = {}
-cmn.registration(objStats, cmn.defs.JSON_CLOUD, 5, 1)
+cmn.registration(objStats, cmn.defs.JSON_CLOUD, intFirstRow, 1)
 //Set-up service to receive HTTPS 'POST'ed data
 cmn.setupHTTPSrx(cmn.defs.JSON_CLOUD
                 ,cmn.defs.JSON_HTTP_POSTS_READ

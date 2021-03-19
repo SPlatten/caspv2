@@ -9,12 +9,12 @@
  //Include modules
 const cmn = require("./incs/common")
 //Display the application start-up message
-cmn.titleBlock("A-Safe-Application demo", "1.00")
+let intFirstRow = cmn.titleBlock("A-Safe-Application demo", "1.00")
 //Timer to check if PIPE has been modified
 let objStats = {}, tmLastModified, tmPrevModified
 //Register this node
 objStats[cmn.defs.JSON_ASAFE] = {}
-cmn.registration(objStats, cmn.defs.JSON_ASAFE, 5, 1)
+cmn.registration(objStats, cmn.defs.JSON_ASAFE, intFirstRow, 1)
 //Timer to read pipe from BeagleBone and Create Pipe
 setInterval(() => {
     if ( cmn.fs.existsSync(cmn.defs.PIPE_BB_TO_ASAFE) != true ) {
