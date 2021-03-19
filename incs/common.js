@@ -206,7 +206,11 @@ const registration = (objStats, strRootKey, intStatsRow, intStatsCol) => {
     }
     if ( typeof intStatsCol == "number" ) {
         intRegStatsCol = intStatsCol
-    }    
+    }        
+    //Set-up launch time and date for reference
+    let dtNow = new Date()
+       ,strTime = dtNow.toLocaleString() + "." + dtNow.getMilliseconds()
+    objStats[strRootKey][defs.JSON_LAUNCH_DATETIME] = strTime
     //Set-up timer to update local date / time
     setInterval(() => {
     //Update local time
@@ -223,20 +227,23 @@ const registration = (objStats, strRootKey, intStatsRow, intStatsCol) => {
         const tmPosOffset   = 32
         let aryNodes = [defs.JSON_ASAFE, defs.JSON_BEAGLEBONE, defs.JSON_CLOUD]
         let intCol = intRegStatsCol, intRow = intRegStatsRow
-        let objAsafe = {colOffsets: [2, 2]
-                             ,keys: [defs.JSON_PIPE_READ
+        let objAsafe = {colOffsets: [2, 2, 2]
+                             ,keys: [defs.JSON_LAUNCH_DATETIME
+                                    ,defs.JSON_PIPE_READ
                                     ,defs.JSON_PIPE_CREATED]                             
                             ,title: "A-Safe Application"}
-        let objBeagleBone = {colOffsets: [2, 2, 2, 2, 2, 2]
-                                  ,keys: [defs.JSON_PIPE_READ
+        let objBeagleBone = {colOffsets: [2, 2, 2, 2, 2, 2, 2]
+                                  ,keys: [defs.JSON_LAUNCH_DATETIME
+                                         ,defs.JSON_PIPE_READ
                                          ,defs.JSON_PIPE_CREATED
                                          ,defs.JSON_HTTP_POSTS_READ
                                          ,defs.JSON_HTTP_POSTS_SENT
                                          ,defs.JSON_HTTP_READ_ERROR
                                          ,defs.JSON_HTTP_SEND_ERROR]
                                  ,title: "BeagleBone NodeJS Server"}
-        let objCloud = {colOffsets: [2, 2, 2, 2]
-                             ,keys: [defs.JSON_HTTP_POSTS_READ
+        let objCloud = {colOffsets: [2, 2, 2, 2, 2]
+                             ,keys: [defs.JSON_LAUNCH_DATETIME
+                                    ,defs.JSON_HTTP_POSTS_READ
                                     ,defs.JSON_HTTP_POSTS_SENT
                                     ,defs.JSON_HTTP_READ_ERROR
                                     ,defs.JSON_HTTP_SEND_ERROR]
@@ -269,6 +276,11 @@ const registration = (objStats, strRootKey, intStatsRow, intStatsCol) => {
                 if ( strLastTitle != objNode[title] ) {
                     strLastTitle = objNode[title]
                     displayDataWithPrompt(++intRow, intCol, "", objNode[title])
+                }
+                if ( strKey == defs.JSON_LAUNCH_DATETIME ) {
+                    displayDataWithPrompt(++intRow, intCol + objNode[colOffsets][k]
+                        ,objData, strKey + ": ")    
+                    continue
                 }
                 displayDataWithPrompt(++intRow, intCol + objNode[colOffsets][k]
                     ,objData[defs.JSON_CNT], strKey + ": ")

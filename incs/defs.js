@@ -28,7 +28,8 @@ const ANSI_PREFIX           = "\u001b["
      ,JSON_HTTP_POSTS_READ  = " HTTPS Posts Read"
      ,JSON_HTTP_POSTS_SENT  = " HTTPS Posts Sent"
      ,JSON_HTTP_READ_ERROR  = " HTTPS Read Error"
-     ,JSON_HTTP_SEND_ERROR  =  "HTTPS Send Error"
+     ,JSON_HTTP_SEND_ERROR  = " HTTPS Send Error"
+     ,JSON_LAUNCH_DATETIME  = " Launch Date/Time"
      ,JSON_LOCAL_TIME       = "Local system Time"
      ,JSON_PIPE_CREATED     = "     Pipe Created"
      ,JSON_PIPE_READ        = "        Pipe Read"
@@ -76,6 +77,7 @@ try{
     exports.JSON_HTTP_POSTS_SENT  = JSON_HTTP_POSTS_SENT
     exports.JSON_HTTP_READ_ERROR  = JSON_HTTP_READ_ERROR
     exports.JSON_HTTP_SEND_ERROR  = JSON_HTTP_SEND_ERROR
+    exports.JSON_LAUNCH_DATETIME  = JSON_LAUNCH_DATETIME
     exports.JSON_LOCAL_TIME       = JSON_LOCAL_TIME
     exports.JSON_PIPE_CREATED     = JSON_PIPE_CREATED
     exports.JSON_PIPE_READ        = JSON_PIPE_READ
