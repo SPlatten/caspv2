@@ -1,7 +1,7 @@
 ********************************************************************************
-				Infinite Blu, NodeJS emulation/simulation
-			Written by: Simon Platten
-			mailto: simonp@syberdynesystems.com
+                  Infinite Blu, NodeJS emulation/simulation
+            Written by: Simon A. Platten of Syberdyne Systems Ltd
+          Date written: 15/03/2021 mailto: simonp@syberdynesystems.com
 ********************************************************************************
 
 Files:
