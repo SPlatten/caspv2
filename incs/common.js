@@ -421,8 +421,8 @@ const titleBlock = (strTitle, strVersion) => {
         strTitle + " for NODE.js, version " + strVersion + ", PID: " 
                                                          + process.pid,
         "Written by Simon A. Platten of Syberdyne Systems Ltd",
-        "Date written: 19/03/2021",
-        "Today's date: " + (new Date()).toLocaleDateString("en-GB")
+        "Date written: 19/03/2021, Today's date: " 
+            + (new Date()).toLocaleDateString("en-GB")
     ], strSeperator = strPadding(defs.DISP_WIDTH, "*")
     let intRow = 1
     displayDataWithPrompt(intRow++, 1
